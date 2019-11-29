@@ -1,0 +1,53 @@
+{
+  "name": "tutorial-kit",
+  "version": "1.0.2",
+  "description": "OpenZeppelin kit containing React, & OpenZeppelin SDK",
+  "main": "index.js",
+  "scripts": {
+    "build-contracts": "openzeppelin compile",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pre-push": "cd client && npm run pre-push",
+    "pre-commit": "cd client && npm run pre-commit"
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "npm run pre-push",
+      "pre-commit": "npm run pre-commit"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OpenZeppelin/starter-kit-tutorial"
+  },
+  "keywords": [
+    "openzeppelin",
+    "truffle",
+    "react",
+    "dapp",
+    "infura",
+    "metamask",
+    "web3",
+    "ganache",
+    "web3js",
+    "ethereum",
+    "smart-contracts"
+  ],
+  "author": "Ramon Recuero <ramon@dapis.io>, Igor Yalovoy <to@ylv.io>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/OpenZeppelin/starter-kit-tutorial/issues"
+  },
+  "homepage": "https://github.com/OpenZeppelin/starter-kit-tutorial#readme",
+  "dependencies": {
+    "@openzeppelin/contracts-ethereum-package": "^2.2.3",
+    "@openzeppelin/upgrades": "^2.5.3",
+    "dotenv": "^6.2.0",
+    "truffle-hdwallet-provider": "^1.0.3"
+  },
+  "devDependencies": {
+    "@openzeppelin/cli": "^2.5.3",
+    "chai": "^4.2.0",
+    "husky": "^3.0.4",
+    "openzeppelin-test-helpers": "^0.4.3"
+  }
+}
