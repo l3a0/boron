@@ -5,7 +5,12 @@ import styles from './Instructions.module.scss';
 export default class Instructions extends Component {
 
   renderSetup() {
-    var results = fetch("https://api.compound.finance/api/v2/account") // Call the fetch function passing the url of the API as a parameter
+    var url = new URL('https://api.compound.finance/api/v2/account');
+    var params = {
+      "max_health[value]": "1.0",
+    }
+    url.search = new URLSearchParams(params).toString();
+    var results = fetch(url) // Call the fetch function passing the url of the API as a parameter
     .then((response) => response.json())
     .then(function(data) {
       // Your code for handling the data you get from the API
