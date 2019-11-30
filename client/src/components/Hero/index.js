@@ -16,56 +16,14 @@ export default class Hero extends Component {
       <div className={styles.Hero}>
         <div className={styles.hwrapper}>
           <div className={styles.left}>
-            <h1> Welcome to Starter Kit Tutorial! </h1>
-            <h2>The easiest way to build a Web3 application with the most trusted tools in Ethereum.</h2>
+            <h1> Welcome to Compound Liquidator! </h1>
+            <h2>Browse and liquidate underwater accounts.</h2>
             <div className={styles.sellingpoints}>
               <div className={styles.feature}>
-                - Includes{' '}
-                <a target="_blank" rel="noopener noreferrer" href="https://openzeppelin.org/">
-                  OpenZeppelin
-                </a>{' '}
-                as an EVM package.
-              </div>
-              <div className={styles.feature}>
-                - Upgradeable smart contracts with{' '}
-                <a target="_blank" rel="noopener noreferrer" href="https://openzeppelin.com/sdk/">
-                  OpenZeppelin SDK
-                </a>
-                .
-              </div>
-              <div className={styles.feature}>
-                - Includes{' '}
-                <a target="_blank" rel="noopener noreferrer" href="https://infura.io">
-                  Infura
-                </a>{' '}
-                setup for easy deployments & connection.
-              </div>
-              <div className={styles.feature}>
-                -{' '}
-                <a target="_blank" rel="noopener noreferrer" href="https://truffleframework.com/">
-                  Truffle
-                </a>{' '}
-                to compile & test smart contracts.
-              </div>
-              <div className={styles.feature}>
-                -{' '}
-                <a target="_blank" rel="noopener noreferrer" href="https://github.com/facebook/create-react-app">
-                  React{' '}
-                </a>{' '}
-                & &nbsp;
-                <a target="_blank" rel="noopener noreferrer" href="https://rimble.consensys.design">
-                  Rimble
-                </a>{' '}
-                to build usable and friendly interfaces.
               </div>
             </div>
             <div className={styles.ctas}>
-              <a
-                className={styles.mainLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                href="https://github.com/OpenZeppelin/starter-kit"
-              >
+              <a className={styles.mainLink} target="_blank" rel="noopener noreferrer" href="https://github.com/l3a0/boron">
                 > View code on github
               </a>
             </div>

@@ -12,7 +12,7 @@ const Header = () => (
         </a>
       </div>
       <ul>
-        <li>
+        {/* <li>
           <a href="/" className={styles.link}>
             {' '}
             Setup
@@ -29,7 +29,7 @@ const Header = () => (
             {' '}
             EVM Packages
           </a>
-        </li>
+        </li> */}
         <li>
           <a href="/faq" className={styles.link}>
             {' '}
