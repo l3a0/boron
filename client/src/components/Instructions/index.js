@@ -3,55 +3,63 @@ import { Table } from 'rimble-ui';
 import styles from './Instructions.module.scss';
 
 export default class Instructions extends Component {
+  state = {
+    accountResponse: null,
+  };
 
-  renderSetup() {
+  componentDidMount() {
     var url = new URL('https://api.compound.finance/api/v2/account');
     var params = {
       "max_health[value]": "1.0",
     }
     url.search = new URLSearchParams(params).toString();
-    var results = fetch(url) // Call the fetch function passing the url of the API as a parameter
+    var component = this;
+    // Call the fetch function passing the url of the API as a parameter
+    fetch(url)
     .then((response) => response.json())
     .then(function(data) {
       // Your code for handling the data you get from the API
+      component.setState({accountResponse: data});
     })
     .catch(function(error) {
       // This is where you run code if the server returns any errors
     });
+  }
+  
+  renderUnderwaterAccounts() {
+    if (this.state.accountResponse) {
+      return (
+        <div className={styles.instructions}>
+          <h1> Browse Underwater Accounts </h1>
+          <Table width="2">
+            <thead>
+              <tr>
+                <th>Address</th>
+                <th>Health</th>
+                <th>Borrow Value (Ξ)</th>
+                <th>Collateral Value (Ξ)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.state.accountResponse.accounts.map((value, index) => {
+                return (
+                  <tr>
+                    <td>{value.address}</td>
+                    <td>{value.health.value.slice(0, 10)}</td>
+                    <td>{value.total_borrow_value_in_eth.value.slice(0, 10)}</td>
+                    <td>{value.total_collateral_value_in_eth.value.slice(0, 10)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </div>
+      );
+    }
 
     return (
       <div className={styles.instructions}>
         <h1> Browse Underwater Accounts </h1>
-        <Table>
-          <thead>
-            <tr>
-              <th>Transaction hash</th>
-              <th>Value</th>
-              <th>Recipient</th>
-              <th>Time</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>0xeb...cc0</td>
-              <td>0.10 ETH</td>
-              <td>0x4fe...581</td>
-              <td>March 28 2019 08:47:17 AM +UTC</td>
-            </tr>
-            <tr>
-              <td>0xsb...230</td>
-              <td>0.11 ETH</td>
-              <td>0x4gj...1e1</td>
-              <td>March 28 2019 08:52:17 AM +UTC</td>
-            </tr>
-            <tr>
-              <td>0xed...c40</td>
-              <td>0.12 ETH</td>
-              <td>0x3fd...781</td>
-              <td>March 28 2019 08:55:17 AM +UTC</td>
-            </tr>
-          </tbody>
-        </Table>
       </div>
     );
   }
@@ -92,11 +100,11 @@ export default class Instructions extends Component {
     const { name } = this.props;
     switch (name) {
       case 'setup':
-        return this.renderSetup();
+        return this.renderUnderwaterAccounts();
       case 'faq':
         return this.renderFAQ();
       default:
-        return this.renderSetup();
+        return this.renderUnderwaterAccounts();
     }
   }
 }

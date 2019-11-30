@@ -133,7 +133,6 @@ class App extends Component {
         <Header />
         {this.state.route === '' && this.renderInstructions()}
         {this.state.route === 'faq' && this.renderFAQ()}
-        <Footer />
       </div>
     );
   }
