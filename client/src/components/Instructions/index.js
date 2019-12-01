@@ -10,7 +10,7 @@ export default class Instructions extends Component {
     liquidations: null,
   };
 
-  componentDidMount = async () => {
+  async componentDidMount() {
     const { name } = this.props;
     switch (name) {
       case 'unhealthyAccounts':
