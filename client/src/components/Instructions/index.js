@@ -106,13 +106,14 @@ export default class Instructions extends Component {
     if (this.state.liquidations) {
       return (
         <div className={styles.instructions}>
-          <h1> Browse Compound USDC Liquidations </h1>
+          <h1> Browse USDC Liquidations </h1>
           <Table width="2">
             <thead>
               <tr>
+                <th>Block #</th>
                 <th>Liquidator</th>
                 <th>Borrower</th>
-                <th>Repay Amount (cUSDC)</th>
+                <th>Repay Amount (USDC)</th>
                 <th>Revenue (cToken)</th>
                 <th>Collateral cToken Address</th>
               </tr>
@@ -121,10 +122,11 @@ export default class Instructions extends Component {
               {this.state.liquidations.map((value, index) => {
                 return (
                   <tr>
+                    <td>{value.blockNumber}</td>
                     <td>{value.returnValues['liquidator']}</td>
                     <td>{value.returnValues['borrower']}</td>
-                    <td><NumberFormat value={value.returnValues['repayAmount']} displayType={'text'} thousandSeparator={true} /></td>
-                    <td><NumberFormat value={value.returnValues['seizeTokens']} displayType={'text'} thousandSeparator={true} /></td>
+                    <td><NumberFormat value={value.returnValues['repayAmount'] / 10**6} displayType={'text'} thousandSeparator={true} /></td>
+                    <td><NumberFormat value={value.returnValues['seizeTokens'] / 10**8} displayType={'text'} thousandSeparator={true} /></td>
                     <td>{value.returnValues['cTokenCollateral']}</td>
                   </tr>
                 );
@@ -137,7 +139,7 @@ export default class Instructions extends Component {
 
     return (
       <div className={styles.instructions}>
-        <h1> Browse Compound USDC Liquidations </h1>
+        <h1> Browse USDC Liquidations </h1>
       </div>
     );
   }
