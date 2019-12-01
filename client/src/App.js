@@ -10,10 +10,9 @@ import styles from './App.module.scss';
 
 class App extends Component {
   state = {
-    storageValue: 0,
     web3: null,
     accounts: null,
-    contract: null,
+    // compoundUsd: null,
     route: window.location.pathname.replace('/', ''),
   };
 
@@ -29,7 +28,9 @@ class App extends Component {
 
   componentDidMount = async () => {
     const hotLoaderDisabled = solidityLoaderOptions.disabled;
+    // let compoundUsdAbi = {};
     try {
+      // compoundUsdAbi = require('../../contracts/cusdc.json');
     } catch (e) {
       console.log(e);
     }
@@ -50,32 +51,28 @@ class App extends Component {
       const isMetaMask = web3.currentProvider.isMetaMask;
       let balance = accounts.length > 0 ? await web3.eth.getBalance(accounts[0]) : web3.utils.toWei('0');
       balance = web3.utils.fromWei(balance, 'ether');
-      let instance = null;
-      let instanceWallet = null;
-      if (instance || instanceWallet) {
-        // Set web3, accounts, and contract to the state, and then proceed with an
-        // example of interacting with the contract's methods.
-        this.setState(
-          {
-            web3,
-            ganacheAccounts,
-            accounts,
-            balance,
-            networkId,
-            networkType,
-            hotLoaderDisabled,
-            isMetaMask,
-            contract: instance,
-            wallet: instanceWallet,
-          },
-          () => {
-            this.refreshValues(instance, instanceWallet);
-            setInterval(() => {
-              this.refreshValues(instance, instanceWallet);
-            }, 5000);
-          },
-        );
-      } else {
+      
+      this.setState({
+        web3,
+        ganacheAccounts,
+        accounts,
+        balance,
+        networkId,
+        networkType,
+        hotLoaderDisabled,
+        isMetaMask,
+      });
+      
+      let compoundUsd = null;
+      // let compoundUsd = new web3.eth.Contract(JSON.parse(compoundUsdAbi.result), '0x39aa39c021dfbae8fac545936693ac917d5e7563');
+      if (compoundUsd) {
+        // var options = {                               
+        //   fromBlock: 0,     
+        //   toBlock: 'latest'
+        // };
+
+        // var allLiquidateBorrowEvents = await compoundUsd.getPastEvents('LiquidateBorrow', options);
+
         this.setState({
           web3,
           ganacheAccounts,
@@ -85,7 +82,10 @@ class App extends Component {
           networkType,
           hotLoaderDisabled,
           isMetaMask,
+          // compoundUsd,
+          // allLiquidateBorrowEvents,
         });
+      } else {
       }
     } catch (error) {
       // Catch any errors for any of the above operations.
@@ -94,26 +94,11 @@ class App extends Component {
     }
   };
 
-  componentWillUnmount() {
-    if (this.interval) {
-      clearInterval(this.interval);
-    }
-  }
-
-  refreshValues = (instance, instanceWallet) => {
-    if (instance) {
-      this.getCount();
-    }
-    if (instanceWallet) {
-      this.updateTokenOwner();
-    }
-  };
-
   renderUnhealthyAccounts() {
     return (
       <div className={styles.wrapper}>
         <Hero />
-        <Instructions ganacheAccounts={this.state.ganacheAccounts} name="unhealthyAccounts" accounts={this.state.accounts} />
+        <Instructions name="unhealthyAccounts" {...this.state} />
       </div>
     );
   }
@@ -122,7 +107,7 @@ class App extends Component {
     return (
       <div className={styles.wrapper}>
         <Hero />
-        <Instructions ganacheAccounts={this.state.ganacheAccounts} name="liquidations" accounts={this.state.accounts} />
+        <Instructions name="liquidations" {...this.state} />
       </div>
     );
   }
@@ -130,7 +115,7 @@ class App extends Component {
   renderFAQ() {
     return (
       <div className={styles.wrapper}>
-        <Instructions ganacheAccounts={this.state.ganacheAccounts} name="faq" accounts={this.state.accounts} />
+        <Instructions name="faq" {...this.state} />
       </div>
     );
   }
