@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import getWeb3, { getGanacheWeb3 } from './utils/getWeb3';
 import Header from './components/Header/index.js';
-import Footer from './components/Footer/index.js';
 import Hero from './components/Hero/index.js';
 import Instructions from './components/Instructions/index.js';
 
@@ -110,11 +109,20 @@ class App extends Component {
     }
   };
 
-  renderInstructions() {
+  renderUnhealthyAccounts() {
     return (
       <div className={styles.wrapper}>
         <Hero />
-        <Instructions ganacheAccounts={this.state.ganacheAccounts} name="setup" accounts={this.state.accounts} />
+        <Instructions ganacheAccounts={this.state.ganacheAccounts} name="unhealthyAccounts" accounts={this.state.accounts} />
+      </div>
+    );
+  }
+
+  renderLiquidations() {
+    return (
+      <div className={styles.wrapper}>
+        <Hero />
+        <Instructions ganacheAccounts={this.state.ganacheAccounts} name="liquidations" accounts={this.state.accounts} />
       </div>
     );
   }
@@ -131,7 +139,8 @@ class App extends Component {
     return (
       <div className={styles.App}>
         <Header />
-        {this.state.route === '' && this.renderInstructions()}
+        {this.state.route === '' && this.renderUnhealthyAccounts()}
+        {this.state.route === 'liquidations' && this.renderLiquidations()}
         {this.state.route === 'faq' && this.renderFAQ()}
       </div>
     );

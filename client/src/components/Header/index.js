@@ -1,6 +1,5 @@
 import React from 'react';
 import styles from './header.module.scss';
-import logo from './stater-kits-logo.png';
 
 const Header = () => (
   <div className={styles.header}>
@@ -10,6 +9,18 @@ const Header = () => (
         </a>
       </div>
       <ul>
+        <li>
+          <a href="/" className={styles.link}>
+            {' '}
+            Browse Accounts
+          </a>
+        </li>
+        <li>
+          <a href="/liquidations" className={styles.link}>
+            {' '}
+            Browse Liquidations
+          </a>
+        </li>
         <li>
           <a href="/faq" className={styles.link}>
             {' '}

@@ -26,11 +26,11 @@ export default class Instructions extends Component {
     });
   }
   
-  renderUnderwaterAccounts() {
+  renderUnhealthyAccounts() {
     if (this.state.accountResponse) {
       return (
         <div className={styles.instructions}>
-          <h1> Browse Underwater Accounts </h1>
+          <h1> Browse Unhealthy Accounts </h1>
           <Table width="2">
             <thead>
               <tr>
@@ -59,7 +59,45 @@ export default class Instructions extends Component {
 
     return (
       <div className={styles.instructions}>
-        <h1> Browse Underwater Accounts </h1>
+        <h1> Browse Unhealthy Accounts </h1>
+      </div>
+    );
+  }
+
+  renderLiquidations() {
+    if (this.state.liquidations) {
+      return (
+        <div className={styles.instructions}>
+          <h1> Browse Liquidations </h1>
+          <Table width="2">
+            <thead>
+              <tr>
+                <th>Address</th>
+                <th>Health</th>
+                <th>Borrow Value (Ξ)</th>
+                <th>Collateral Value (Ξ)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {this.state.accountResponse.accounts.map((value, index) => {
+                return (
+                  <tr>
+                    <td>{value.address}</td>
+                    <td>{value.health.value.slice(0, 10)}</td>
+                    <td>{value.total_borrow_value_in_eth.value.slice(0, 10)}</td>
+                    <td>{value.total_collateral_value_in_eth.value.slice(0, 10)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </Table>
+        </div>
+      );
+    }
+
+    return (
+      <div className={styles.instructions}>
+        <h1> Browse Liquidations </h1>
       </div>
     );
   }
@@ -99,12 +137,14 @@ export default class Instructions extends Component {
   render() {
     const { name } = this.props;
     switch (name) {
-      case 'setup':
-        return this.renderUnderwaterAccounts();
+      case 'unhealthyAccounts':
+        return this.renderUnhealthyAccounts();
+      case 'liquidations':
+          return this.renderLiquidations();
       case 'faq':
         return this.renderFAQ();
       default:
-        return this.renderUnderwaterAccounts();
+        return this.renderUnhealthyAccounts();
     }
   }
 }

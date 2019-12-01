@@ -10,7 +10,7 @@ export default class Hero extends Component {
         <div className={styles.hwrapper}>
           <div className={styles.left}>
             <h1> Welcome to Compound Liquidator! </h1>
-            <h2>Browse and liquidate underwater accounts.</h2>
+            <h2>Browse and liquidate unhealthy accounts.</h2>
             <div className={styles.sellingpoints}>
               <div className={styles.feature}>
               </div>
