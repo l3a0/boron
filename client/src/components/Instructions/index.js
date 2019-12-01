@@ -17,7 +17,6 @@ export default class Instructions extends Component {
         await this.loadUnhealthyAccounts();
       case 'liquidations':
         await this.loadLiquidations();
-      case 'faq':
       default:
         return this.loadUnhealthyAccounts();
     }
@@ -143,38 +142,6 @@ export default class Instructions extends Component {
     );
   }
 
-  renderFAQ() {
-    return (
-      <div className={styles.instructions}>
-        <h2> FAQ </h2>
-        <div className={styles.question}>Q: Why?</div>
-        <div className={styles.separator} />
-        <div className={styles.step}>
-          <div className={styles.instruction}>
-            1. Enable browsing accounts eligible for liquidation.
-          </div>
-        </div>
-        <div className={styles.step}>
-          <div className={styles.instruction}>
-            2. Enable liquidating accounts.
-          </div>
-        </div>
-        <div className={styles.question}>Q: What?</div>
-        <div className={styles.separator} />
-        <div className={styles.step}>
-          <div className={styles.instruction}>
-            1. A UX to identify accounts eligible for liquidation.
-          </div>
-        </div>
-        <div className={styles.step}>
-          <div className={styles.instruction}>
-            2. A UX to liquidate accounts.
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   render() {
     const { name } = this.props;
     switch (name) {
@@ -182,8 +149,6 @@ export default class Instructions extends Component {
         return this.renderUnhealthyAccounts();
       case 'liquidations':
           return this.renderLiquidations();
-      case 'faq':
-        return this.renderFAQ();
       default:
         return this.renderUnhealthyAccounts();
     }

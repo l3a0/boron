@@ -21,12 +21,6 @@ const Header = () => (
             Browse Liquidations
           </a>
         </li>
-        <li>
-          <a href="/faq" className={styles.link}>
-            {' '}
-            FAQ
-          </a>
-        </li>
       </ul>
     </nav>
   </div>

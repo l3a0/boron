@@ -62,7 +62,7 @@ class App extends Component {
         hotLoaderDisabled,
         isMetaMask,
       });
-      
+
       let compoundUsd = null;
       // let compoundUsd = new web3.eth.Contract(JSON.parse(compoundUsdAbi.result), '0x39aa39c021dfbae8fac545936693ac917d5e7563');
       if (compoundUsd) {
@@ -126,7 +126,6 @@ class App extends Component {
         <Header />
         {this.state.route === '' && this.renderUnhealthyAccounts()}
         {this.state.route === 'liquidations' && this.renderLiquidations()}
-        {this.state.route === 'faq' && this.renderFAQ()}
       </div>
     );
   }
