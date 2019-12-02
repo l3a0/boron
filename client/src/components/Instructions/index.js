@@ -36,12 +36,34 @@ export default class Instructions extends Component {
         // In theory options parameter is optional. In practice an empty array is
         // returned if options is not provided with fromBlock and toBlock set.
         let liquidations = await compoundUsd.getPastEvents('LiquidateBorrow', options);
-        this.setState({ liquidations: liquidations });
+        const totalLiquidation = this.calculateTotalLiquidation(liquidations);
+        const addressToSymbolMap = {
+          '0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5': 'cETH',
+          '0x158079Ee67Fce2f58472A96584A73C7Ab9AC95c1': 'cREP',
+          '0x6C8c6b02E7b2BE14d4fA6022Dfd6d75921D90E4E': 'cBAT',
+          '0xF5DCe57282A584D2746FaF1593d3121Fcac444dC': 'cSAI',
+          '0xB3319f5D18Bc0D84dD1b4825Dcde5d5f7266d407': 'cZRX',
+          '0xC11b1268C1A384e55C48c2391d8d480264A3A7F4': 'cWBTC',
+          '0xC11b1268C1A384e55C48c2391d8d480264A3A7F4': 'cWBTC',
+        }
+        liquidations.forEach(element => {
+          element.symbol = addressToSymbolMap[element.returnValues['cTokenCollateral']];
+        });
+        this.setState({ liquidations: liquidations, totalLiquidation: totalLiquidation });
       }
       catch (error) {
         console.log(error);
       }
     }
+  }
+
+  calculateTotalLiquidation(liquidations) {
+    const sum = (accumulator, currentValue) => {
+      let repayAmount = (currentValue.returnValues['repayAmount'] / 10 ** 6);
+      return accumulator + repayAmount;
+    };
+    const totalRevenue = liquidations.reduce(sum, 0);
+    return totalRevenue;
   }
 
   async loadUnhealthyAccounts() {
@@ -115,10 +137,18 @@ export default class Instructions extends Component {
                 <th>Borrower</th>
                 <th>Repay Amount (USDC)</th>
                 <th>Revenue (cToken)</th>
-                <th>Collateral cToken Address</th>
+                <th>cToken</th>
               </tr>
             </thead>
             <tbody>
+              <tr>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td><NumberFormat value={this.state.totalLiquidation} displayType={'text'} thousandSeparator={true} /></td>
+                <td></td>
+                <td></td>
+              </tr>
               {this.state.liquidations.map((value, index) => {
                 return (
                   <tr>
@@ -127,7 +157,7 @@ export default class Instructions extends Component {
                     <td>{value.returnValues['borrower']}</td>
                     <td><NumberFormat value={value.returnValues['repayAmount'] / 10**6} displayType={'text'} thousandSeparator={true} /></td>
                     <td><NumberFormat value={value.returnValues['seizeTokens'] / 10**8} displayType={'text'} thousandSeparator={true} /></td>
-                    <td>{value.returnValues['cTokenCollateral']}</td>
+                    <td>{value.symbol}</td>
                   </tr>
                 );
               })}
