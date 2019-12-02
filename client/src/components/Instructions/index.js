@@ -50,7 +50,16 @@ export default class Instructions extends Component {
         }
         liquidations.forEach(element => {
           element.symbol = addressToSymbolMap[element.returnValues['cTokenCollateral']].symbol;
-          element.revenue = addressToSymbolMap[element.returnValues['cTokenCollateral']].price * (element.returnValues['seizeTokens'] / 10**8);
+          const price = addressToSymbolMap[element.returnValues['cTokenCollateral']].price;
+          const seizeTokens = element.returnValues['seizeTokens'] / 10**8;
+          // Liquidation incentive is 1.05.
+          // seizeTokens = x * 1.05
+          // x = seizeTokens / 1.05
+          // revenue = seizeTokens - x
+          // revenue = seizeTokens - (seizeTokens / 1.05)
+          const liquidationIncentive = 1.05;
+          element.revenue = seizeTokens - (seizeTokens / liquidationIncentive);
+          element.revenue = element.revenue * price;
         });
         const totalLiquidation = this.calculateTotalLiquidation(liquidations);
         const totalRevenue = this.calculateTotalRevenue(liquidations);
