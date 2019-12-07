@@ -163,7 +163,7 @@ export default class Instructions extends Component {
             </thead>
             <tbody>
               <tr>
-                <td></td>
+                <td><NumberFormat value={this.state.liquidations.length} displayType={'text'} thousandSeparator={true} /></td>
                 <td></td>
                 <td></td>
                 <td><NumberFormat value={this.state.totalLiquidation} displayType={'text'} thousandSeparator={true} /></td>
