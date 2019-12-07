@@ -21,37 +21,31 @@ export default class Liquidations extends Component {
     if (compoundUsd) {
       let options = {
         fromBlock: 0,
-        toBlock: 'latest'
+        toBlock: 'latest',
       };
       try {
         // In theory options parameter is optional. In practice an empty array is
         // returned if options is not provided with fromBlock and toBlock set.
         let liquidations = await compoundUsd.getPastEvents('LiquidateBorrow', options);
-        // Prices are in USD ($).
-        const addressToSymbolMap = {
-          '0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5': {'symbol': 'cETH', 'price': 3.0154},
-          '0x158079Ee67Fce2f58472A96584A73C7Ab9AC95c1': {'symbol': 'cREP', 'price': 0.2126},
-          '0x6C8c6b02E7b2BE14d4fA6022Dfd6d75921D90E4E': {'symbol': 'cBAT', 'price': 0.0039},
-          '0xF5DCe57282A584D2746FaF1593d3121Fcac444dC': {'symbol': 'cSAI', 'price': 0.0211},
-          '0xB3319f5D18Bc0D84dD1b4825Dcde5d5f7266d407': {'symbol': 'cZRX', 'price': 0.0051},
-          '0xC11b1268C1A384e55C48c2391d8d480264A3A7F4': {'symbol': 'cWBTC', 'price': 148.3473},
-        }
+        let totalLiquidation = 0;
+        let totalRevenue = 0;
+        let distinctLiquidators = new Set();
+        let distinctBorrowers = new Set();
         liquidations.forEach(element => {
-          element.symbol = addressToSymbolMap[element.returnValues['cTokenCollateral']].symbol;
-          const price = addressToSymbolMap[element.returnValues['cTokenCollateral']].price;
-          const seizeTokens = element.returnValues['seizeTokens'] / 10**8;
-          // Liquidation incentive is 1.05.
-          // seizeTokens = x * 1.05
-          // x = seizeTokens / 1.05
-          // revenue = seizeTokens - x
-          // revenue = seizeTokens - (seizeTokens / 1.05)
-          const liquidationIncentive = 1.05;
-          element.revenue = seizeTokens - (seizeTokens / liquidationIncentive);
-          element.revenue = element.revenue * price;
+          this.calculateRevenue(element);
+          totalRevenue += element.revenue;
+          let repayAmount = (element.returnValues['repayAmount'] / 10 ** 6);
+          totalLiquidation += repayAmount;
+          distinctLiquidators.add(element.returnValues['liquidator']);
+          distinctBorrowers.add(element.returnValues['borrower']);
         });
-        const totalLiquidation = this.calculateTotalLiquidation(liquidations);
-        const totalRevenue = this.calculateTotalRevenue(liquidations);
-        this.setState({ liquidations: liquidations, totalLiquidation: totalLiquidation, totalRevenue: totalRevenue });
+        this.setState({
+          liquidations: liquidations,
+          totalLiquidation: totalLiquidation,
+          totalRevenue: totalRevenue,
+          distinctLiquidators: distinctLiquidators,
+          distinctBorrowers: distinctBorrowers,
+        });
       }
       catch (error) {
         console.log(error);
@@ -59,19 +53,28 @@ export default class Liquidations extends Component {
     }
   }
 
-  calculateTotalLiquidation(liquidations) {
-    const sum = (accumulator, currentValue) => {
-      let repayAmount = (currentValue.returnValues['repayAmount'] / 10 ** 6);
-      return accumulator + repayAmount;
-    };
-    return liquidations.reduce(sum, 0);
-  }
-
-  calculateTotalRevenue(liquidations) {
-    const sum = (accumulator, currentValue) => {
-      return accumulator + currentValue.revenue;
-    };
-    return liquidations.reduce(sum, 0);
+  calculateRevenue(element) {
+    // Prices are in USD ($).
+    const addressToSymbolMap = {
+      '0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5': {'symbol': 'cETH', 'price': 3.0154},
+      '0x158079Ee67Fce2f58472A96584A73C7Ab9AC95c1': {'symbol': 'cREP', 'price': 0.2126},
+      '0x6C8c6b02E7b2BE14d4fA6022Dfd6d75921D90E4E': {'symbol': 'cBAT', 'price': 0.0039},
+      '0xF5DCe57282A584D2746FaF1593d3121Fcac444dC': {'symbol': 'cSAI', 'price': 0.0211},
+      '0xB3319f5D18Bc0D84dD1b4825Dcde5d5f7266d407': {'symbol': 'cZRX', 'price': 0.0051},
+      '0xC11b1268C1A384e55C48c2391d8d480264A3A7F4': {'symbol': 'cWBTC', 'price': 148.3473},
+    }
+    const cTokenAddress = element.returnValues['cTokenCollateral'];
+    element.symbol = addressToSymbolMap[cTokenAddress].symbol;
+    const price = addressToSymbolMap[cTokenAddress].price;
+    const seizeTokens = element.returnValues['seizeTokens'] / 10 ** 8;
+    // Liquidation incentive is 1.05.
+    // seizeTokens = x * 1.05
+    // x = seizeTokens / 1.05
+    // revenue = seizeTokens - x
+    // revenue = seizeTokens - (seizeTokens / 1.05)
+    const liquidationIncentive = 1.05;
+    element.revenue = seizeTokens - (seizeTokens / liquidationIncentive);
+    element.revenue = element.revenue * price;
   }
 
   renderLiquidations() {
@@ -93,11 +96,11 @@ export default class Liquidations extends Component {
             </thead>
             <tbody>
               <tr>
-                <td><NumberFormat value={this.state.liquidations.length} displayType={'text'} thousandSeparator={true} /></td>
-                <td></td>
-                <td></td>
-                <td><NumberFormat value={this.state.totalLiquidation} displayType={'text'} thousandSeparator={true} /></td>
-                <td><NumberFormat value={this.state.totalRevenue} displayType={'text'} thousandSeparator={true} /></td>
+                <td>Count: <NumberFormat value={this.state.liquidations.length} displayType={'text'} thousandSeparator={true} /></td>
+                <td>Distinct: <NumberFormat value={this.state.distinctLiquidators.size} displayType={'text'} thousandSeparator={true} /></td>
+                <td>Distinct: <NumberFormat value={this.state.distinctBorrowers.size} displayType={'text'} thousandSeparator={true} /></td>
+                <td>Sum: <NumberFormat value={this.state.totalLiquidation} displayType={'text'} thousandSeparator={true} /></td>
+                <td>Sum: <NumberFormat value={this.state.totalRevenue} displayType={'text'} thousandSeparator={true} /></td>
                 <td></td>
               </tr>
               {this.state.liquidations.map((value, index) => {

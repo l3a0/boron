@@ -11,9 +11,6 @@ import styles from './App.module.scss';
 
 class App extends Component {
   state = {
-    web3: null,
-    accounts: null,
-    // compoundUsd: null,
     route: window.location.pathname.replace('/', ''),
   };
 

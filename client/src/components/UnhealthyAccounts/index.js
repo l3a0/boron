@@ -1,8 +1,6 @@
 import React, { Component } from 'react';
 import { Table } from 'rimble-ui';
 import styles from './UnhealthyAccounts.module.scss';
-import getWeb3 from '../../utils/getWeb3';
-import NumberFormat from 'react-number-format';
 
 export default class UnhealthyAccounts extends Component {
   state = {
