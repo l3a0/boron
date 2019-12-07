@@ -2,7 +2,8 @@ import React, { Component } from 'react';
 import getWeb3, { getGanacheWeb3 } from './utils/getWeb3';
 import Header from './components/Header/index.js';
 import Hero from './components/Hero/index.js';
-import Instructions from './components/Instructions/index.js';
+import Liquidations from './components/Liquidations/index.js';
+import UnhealthyAccounts from './components/UnhealthyAccounts/index.js';
 
 import { solidityLoaderOptions } from '../config/webpack';
 
@@ -28,12 +29,6 @@ class App extends Component {
 
   componentDidMount = async () => {
     const hotLoaderDisabled = solidityLoaderOptions.disabled;
-    // let compoundUsdAbi = {};
-    try {
-      // compoundUsdAbi = require('../../contracts/cusdc.json');
-    } catch (e) {
-      console.log(e);
-    }
     try {
       // Get network provider and web3 instance.
       const web3 = await getWeb3();
@@ -62,31 +57,6 @@ class App extends Component {
         hotLoaderDisabled,
         isMetaMask,
       });
-
-      let compoundUsd = null;
-      // let compoundUsd = new web3.eth.Contract(JSON.parse(compoundUsdAbi.result), '0x39aa39c021dfbae8fac545936693ac917d5e7563');
-      if (compoundUsd) {
-        // var options = {                               
-        //   fromBlock: 0,     
-        //   toBlock: 'latest'
-        // };
-
-        // var allLiquidateBorrowEvents = await compoundUsd.getPastEvents('LiquidateBorrow', options);
-
-        this.setState({
-          web3,
-          ganacheAccounts,
-          accounts,
-          balance,
-          networkId,
-          networkType,
-          hotLoaderDisabled,
-          isMetaMask,
-          // compoundUsd,
-          // allLiquidateBorrowEvents,
-        });
-      } else {
-      }
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(`Failed to load web3, accounts, or contract. Check console for details.`);
@@ -98,7 +68,7 @@ class App extends Component {
     return (
       <div className={styles.wrapper}>
         <Hero />
-        <Instructions name="unhealthyAccounts" {...this.state} />
+        <UnhealthyAccounts {...this.state} />
       </div>
     );
   }
@@ -107,15 +77,7 @@ class App extends Component {
     return (
       <div className={styles.wrapper}>
         <Hero />
-        <Instructions name="liquidations" {...this.state} />
-      </div>
-    );
-  }
-
-  renderFAQ() {
-    return (
-      <div className={styles.wrapper}>
-        <Instructions name="faq" {...this.state} />
+        <Liquidations {...this.state} />
       </div>
     );
   }

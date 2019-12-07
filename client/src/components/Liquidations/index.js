@@ -1,28 +1,16 @@
 import React, { Component } from 'react';
 import { Table } from 'rimble-ui';
-import styles from './Instructions.module.scss';
+import styles from './Liquidations.module.scss';
 import getWeb3 from '../../utils/getWeb3';
 import NumberFormat from 'react-number-format';
 
-export default class Instructions extends Component {
+export default class Liquidations extends Component {
   state = {
-    accountResponse: null,
     liquidations: null,
   };
 
   async componentDidMount() {
-    const { name } = this.props;
-    switch (name) {
-      case 'unhealthyAccounts':
-        await this.loadUnhealthyAccounts();
-        break;
-      case 'liquidations':
-        await this.loadLiquidations();
-        break;
-      default:
-        this.loadUnhealthyAccounts();
-        break;
-    }
+    await this.loadLiquidations();
   }
   
   async loadLiquidations() {
@@ -86,64 +74,6 @@ export default class Instructions extends Component {
     return liquidations.reduce(sum, 0);
   }
 
-  async loadUnhealthyAccounts() {
-    let url = new URL('https://api.compound.finance/api/v2/account');
-    let params = {
-      "max_health[value]": "1.0",
-    };
-    url.search = new URLSearchParams(params).toString();
-    try {
-      // Call the fetch function passing the url of the API as a parameter
-      let response = await fetch(url);
-      // Your code for handling the data you get from the API
-      // TODO: Filter by token.
-      let data = await response.json();
-      this.setState({ accountResponse: data });
-    }
-    catch (e) {
-      // This is where you run code if the server returns any errors
-      console.log(e);
-    }
-  }
-
-  renderUnhealthyAccounts() {
-    if (this.state.accountResponse) {
-      return (
-        <div className={styles.instructions}>
-          <h1> Browse Unhealthy Accounts </h1>
-          <Table width="2">
-            <thead>
-              <tr>
-                <th>Address</th>
-                <th>Health</th>
-                <th>Borrow Value (Ξ)</th>
-                <th>Collateral Value (Ξ)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {this.state.accountResponse.accounts.map((value, index) => {
-                return (
-                  <tr>
-                    <td>{value.address}</td>
-                    <td>{value.health.value.slice(0, 10)}</td>
-                    <td>{value.total_borrow_value_in_eth.value.slice(0, 10)}</td>
-                    <td>{value.total_collateral_value_in_eth.value.slice(0, 10)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </Table>
-        </div>
-      );
-    }
-
-    return (
-      <div className={styles.instructions}>
-        <h1> Browse Unhealthy Accounts </h1>
-      </div>
-    );
-  }
-
   renderLiquidations() {
     if (this.state.liquidations) {
       return (
@@ -197,14 +127,6 @@ export default class Instructions extends Component {
   }
 
   render() {
-    const { name } = this.props;
-    switch (name) {
-      case 'unhealthyAccounts':
-        return this.renderUnhealthyAccounts();
-      case 'liquidations':
-          return this.renderLiquidations();
-      default:
-        return this.renderUnhealthyAccounts();
-    }
+    return this.renderLiquidations();
   }
 }

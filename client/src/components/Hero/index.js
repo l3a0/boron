@@ -1,7 +1,5 @@
 import React, { Component } from 'react';
 import styles from './Hero.module.scss';
-import cx from 'classnames';
-import logos from './pic_bg.png';
 
 export default class Hero extends Component {
   render() {
