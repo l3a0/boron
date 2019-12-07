@@ -31,13 +31,13 @@ export default class Liquidations extends Component {
         let totalRevenue = 0;
         let distinctLiquidators = new Set();
         let distinctBorrowers = new Set();
-        liquidations.forEach(element => {
-          this.calculateRevenue(element);
-          totalRevenue += element.revenue;
-          let repayAmount = (element.returnValues['repayAmount'] / 10 ** 6);
+        liquidations.forEach(liquidation => {
+          this.calculateRevenue(liquidation);
+          totalRevenue += liquidation.revenue;
+          let repayAmount = (liquidation.returnValues['repayAmount'] / 10 ** 6);
           totalLiquidation += repayAmount;
-          distinctLiquidators.add(element.returnValues['liquidator']);
-          distinctBorrowers.add(element.returnValues['borrower']);
+          distinctLiquidators.add(liquidation.returnValues['liquidator']);
+          distinctBorrowers.add(liquidation.returnValues['borrower']);
         });
         this.setState({
           liquidations: liquidations,
@@ -53,7 +53,7 @@ export default class Liquidations extends Component {
     }
   }
 
-  calculateRevenue(element) {
+  calculateRevenue(liquidation) {
     // Prices are in USD ($).
     const addressToSymbolMap = {
       '0x4Ddc2D193948926D02f9B1fE9e1daa0718270ED5': {'symbol': 'cETH', 'price': 3.0154},
@@ -63,18 +63,18 @@ export default class Liquidations extends Component {
       '0xB3319f5D18Bc0D84dD1b4825Dcde5d5f7266d407': {'symbol': 'cZRX', 'price': 0.0051},
       '0xC11b1268C1A384e55C48c2391d8d480264A3A7F4': {'symbol': 'cWBTC', 'price': 148.3473},
     }
-    const cTokenAddress = element.returnValues['cTokenCollateral'];
-    element.symbol = addressToSymbolMap[cTokenAddress].symbol;
+    const cTokenAddress = liquidation.returnValues['cTokenCollateral'];
+    liquidation.symbol = addressToSymbolMap[cTokenAddress].symbol;
     const price = addressToSymbolMap[cTokenAddress].price;
-    const seizeTokens = element.returnValues['seizeTokens'] / 10 ** 8;
+    const seizeTokens = liquidation.returnValues['seizeTokens'] / 10 ** 8;
     // Liquidation incentive is 1.05.
     // seizeTokens = x * 1.05
     // x = seizeTokens / 1.05
     // revenue = seizeTokens - x
     // revenue = seizeTokens - (seizeTokens / 1.05)
     const liquidationIncentive = 1.05;
-    element.revenue = seizeTokens - (seizeTokens / liquidationIncentive);
-    element.revenue = element.revenue * price;
+    liquidation.revenue = seizeTokens - (seizeTokens / liquidationIncentive);
+    liquidation.revenue = liquidation.revenue * price;
   }
 
   renderLiquidations() {
@@ -99,8 +99,8 @@ export default class Liquidations extends Component {
                 <td>Count: <NumberFormat value={this.state.liquidations.length} displayType={'text'} thousandSeparator={true} /></td>
                 <td>Distinct: <NumberFormat value={this.state.distinctLiquidators.size} displayType={'text'} thousandSeparator={true} /></td>
                 <td>Distinct: <NumberFormat value={this.state.distinctBorrowers.size} displayType={'text'} thousandSeparator={true} /></td>
-                <td>Sum: <NumberFormat value={this.state.totalLiquidation} displayType={'text'} thousandSeparator={true} /></td>
-                <td>Sum: <NumberFormat value={this.state.totalRevenue} displayType={'text'} thousandSeparator={true} /></td>
+                <td>Sum: <NumberFormat value={this.state.totalLiquidation} displayType={'text'} thousandSeparator={true} decimalScale={2} /></td>
+                <td>Sum: <NumberFormat value={this.state.totalRevenue} displayType={'text'} thousandSeparator={true} decimalScale={2} /></td>
                 <td></td>
               </tr>
               {this.state.liquidations.map((value, index) => {
