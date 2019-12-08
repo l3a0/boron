@@ -1,14 +1,12 @@
 import React, { Component } from 'react';
 import NumberFormat from 'react-number-format';
 import Plot from 'react-plotly.js';
-import { Table } from 'rimble-ui';
+// import { Table } from 'rimble-ui';
 import styles from './Liquidations.module.scss';
 import getWeb3 from '../../utils/getWeb3';
 
 export default class Liquidations extends Component {
-  state = {
-    liquidations: null,
-  };
+  state = {};
 
   async componentDidMount() {
     await this.loadLiquidations();
@@ -34,6 +32,7 @@ export default class Liquidations extends Component {
         let distinctBorrowers = new Set();
         let blocksRetrieved = 0;
         let dailyRevenue = {};
+        let liquidatorsByRevenue = {};
         liquidations.forEach(liquidation => {
           this.calculateRevenue(liquidation);
           totalRevenue += liquidation.revenue;
@@ -41,6 +40,14 @@ export default class Liquidations extends Component {
           totalLiquidation += repayAmount;
           distinctLiquidators.add(liquidation.returnValues['liquidator']);
           distinctBorrowers.add(liquidation.returnValues['borrower']);
+          let liquidator = {};
+          liquidator.address = liquidation.returnValues['liquidator'];
+          liquidator.revenue = liquidation.revenue;
+          if (liquidatorsByRevenue[liquidator.address]) {
+            liquidatorsByRevenue[liquidator.address].revenue += liquidation.revenue
+          } else {
+            liquidatorsByRevenue[liquidator.address] = liquidator;
+          }
           web3.eth.getBlock(liquidation.blockNumber, (error, block) => {
             blocksRetrieved++;
             liquidation.timestamp = block.timestamp;
@@ -48,8 +55,8 @@ export default class Liquidations extends Component {
             // wait for all blocks to be retrieved.
             if (blocksRetrieved === liquidations.length) {
               dailyRevenue = liquidations.reduce(function(acc, cur) {
-                let dateString = cur.timestampISO.substring(0, 10);
-                acc[dateString] = (acc[dateString] || 0) + cur.revenue;
+                let date = cur.timestampISO.substring(0, 10);
+                acc[date] = (acc[date] || 0) + cur.revenue;
                 return acc;
               }, {});
               // trigger ui update once after all blocks have been retrieved
@@ -61,12 +68,19 @@ export default class Liquidations extends Component {
             }
           });
         });
+        liquidatorsByRevenue = Object.values(liquidatorsByRevenue).sort((a, b) => b.revenue - a.revenue);
+        let top10LiquidatorsByRevenue = liquidatorsByRevenue.slice(0, 10);
+        let addresses = top10LiquidatorsByRevenue.map(x => x.address);
+        let revenue = top10LiquidatorsByRevenue.map(x => x.revenue.toFixed(2));
+        top10LiquidatorsByRevenue = [addresses, revenue];
         this.setState({
           liquidations: liquidations,
           totalLiquidation: totalLiquidation,
           totalRevenue: totalRevenue,
           distinctLiquidators: distinctLiquidators,
           distinctBorrowers: distinctBorrowers,
+          liquidatorsByRevenue: liquidatorsByRevenue,
+          top10LiquidatorsByRevenue: top10LiquidatorsByRevenue,
         });
       }
       catch (error) {
@@ -136,7 +150,44 @@ export default class Liquidations extends Component {
               },
             }}
           />
-          <Table width="2" fontSize="0.65em" >
+          <Plot
+            data={[
+              {
+                type: 'table',
+                columnwidth: [4,1],
+                header: {
+                  values: [["<b>Liquidator</b>"], ["<b>Revenue</b>"]],
+                  align: ["left", "right"],
+                },
+                cells: {
+                  values: this.state.top10LiquidatorsByRevenue,
+                  align: ["left", "right"],
+                  font: {family: "Consolas"},
+                },
+              },
+            ]}
+            layout={{
+              title: 'Top 10 Liquidators by Revenue',
+            }}
+          />
+          <Plot
+            data={[
+              {
+                x: this.state.liquidatorsByRevenue.map(liquidator => liquidator.revenue),
+                type: 'histogram',
+              },
+            ]}
+            layout={{
+              title: 'Liquidator Revenue Distribution',
+              yaxis: {
+                title: 'Count'
+              },
+              xaxis: {
+                title: 'Revenue ($4900 bins)'
+              },
+            }}
+          />
+          <table>
             <thead>
               <tr>
                 <th>Time</th>
@@ -155,8 +206,9 @@ export default class Liquidations extends Component {
                 <td>Count: <NumberFormat value={this.state.liquidations.length} displayType={'text'} thousandSeparator={true} /></td>
                 <td>Distinct: <NumberFormat value={this.state.distinctLiquidators.size} displayType={'text'} thousandSeparator={true} /></td>
                 <td>Distinct: <NumberFormat value={this.state.distinctBorrowers.size} displayType={'text'} thousandSeparator={true} /></td>
-                <td>Sum: <NumberFormat value={this.state.totalLiquidation.toFixed(2)} displayType={'text'} thousandSeparator={true} /></td>
-                <td>Sum: <NumberFormat value={this.state.totalRevenue.toFixed(2)} displayType={'text'} thousandSeparator={true} /></td>
+                <td align="right">Sum: <NumberFormat value={this.state.totalLiquidation.toFixed(2)} displayType={'text'} thousandSeparator={true} /></td>
+                <td align="right">Sum: <NumberFormat value={this.state.totalRevenue.toFixed(2)} displayType={'text'} thousandSeparator={true} /></td>
+                <td></td>
                 <td></td>
               </tr>
               {this.state.liquidations.map((value, index) => {
@@ -166,15 +218,15 @@ export default class Liquidations extends Component {
                     <td>{value.blockNumber}</td>
                     <td>{value.returnValues['liquidator']}</td>
                     <td>{value.returnValues['borrower']}</td>
-                    <td><NumberFormat value={(value.returnValues['repayAmount'] / 10**6).toFixed(6)} displayType={'text'} thousandSeparator={true} /></td>
-                    <td><NumberFormat value={value.revenue.toFixed(6)} displayType={'text'} thousandSeparator={true} /></td>
-                    <td><NumberFormat value={(value.returnValues['seizeTokens'] / 10**8).toFixed(6)} displayType={'text'} thousandSeparator={true} /></td>
+                    <td align="right"><NumberFormat value={(value.returnValues['repayAmount'] / 10**6).toFixed(6)} displayType={'text'} thousandSeparator={true} /></td>
+                    <td align="right"><NumberFormat value={value.revenue.toFixed(6)} displayType={'text'} thousandSeparator={true} /></td>
+                    <td align="right"><NumberFormat value={(value.returnValues['seizeTokens'] / 10**8).toFixed(6)} displayType={'text'} thousandSeparator={true} /></td>
                     <td>{value.symbol}</td>
                   </tr>
                 );
               })}
             </tbody>
-          </Table>
+          </table>
         </div>
       );
     }

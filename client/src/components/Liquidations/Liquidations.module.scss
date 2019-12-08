@@ -7,4 +7,16 @@
   flex-flow: column nowrap;
   align-items: center;
   text-align: left;
+
+  table {
+    font-family: 'Consolas';
+    font-size: 0.65em;
+    border-collapse: collapse;
+    border: 1px solid black;
+
+    td, th {
+      padding: 6px;
+      border: 1px solid black;
+    }
+  }
 }
