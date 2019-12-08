@@ -33,6 +33,7 @@ export default class Liquidations extends Component {
         let distinctLiquidators = new Set();
         let distinctBorrowers = new Set();
         let blocksRetrieved = 0;
+        let dailyRevenue = {};
         liquidations.forEach(liquidation => {
           this.calculateRevenue(liquidation);
           totalRevenue += liquidation.revenue;
@@ -42,13 +43,20 @@ export default class Liquidations extends Component {
           distinctBorrowers.add(liquidation.returnValues['borrower']);
           web3.eth.getBlock(liquidation.blockNumber, (error, block) => {
             blocksRetrieved++;
-            liquidation.timestamp = (new Date(block.timestamp * 1000)).toISOString();
+            liquidation.timestamp = block.timestamp;
+            liquidation.timestampISO = (new Date(block.timestamp * 1000)).toISOString();
             // wait for all blocks to be retrieved.
-            if (blocksRetrieved === liquidations.length){
+            if (blocksRetrieved === liquidations.length) {
+              dailyRevenue = liquidations.reduce(function(acc, cur) {
+                let dateString = cur.timestampISO.substring(0, 10);
+                acc[dateString] = (acc[dateString] || 0) + cur.revenue;
+                return acc;
+              }, {});
               // trigger ui update once after all blocks have been retrieved
               // to avoid degrading performance.
               this.setState({
                 liquidations: liquidations,
+                dailyRevenue: dailyRevenue,
               });
             }
           });
@@ -92,15 +100,15 @@ export default class Liquidations extends Component {
   }
 
   renderLiquidations() {
-    if (this.state.liquidations) {
+    if (this.state.liquidations && this.state.dailyRevenue) {
       return (
         <div className={styles.instructions}>
           <h1> Browse USDC Liquidations </h1>
           <Plot
             data={[
               {
-                x: this.state.liquidations.map(liquidation => liquidation.timestamp),
-                y: this.state.liquidations.map(liquidation => liquidation.revenue),
+                x: Object.keys(this.state.dailyRevenue),
+                y: Object.values(this.state.dailyRevenue),
                 type: 'scatter',
               },
             ]}
@@ -108,7 +116,7 @@ export default class Liquidations extends Component {
               title: 'USDC Liquidation Revenue',
               yaxis: {
                 title: 'Revenue ($)'
-              }
+              },
             }}
           />
           <Plot
@@ -154,7 +162,7 @@ export default class Liquidations extends Component {
               {this.state.liquidations.map((value, index) => {
                 return (
                   <tr>
-                    <td>{value.timestamp}</td>
+                    <td>{value.timestampISO}</td>
                     <td>{value.blockNumber}</td>
                     <td>{value.returnValues['liquidator']}</td>
                     <td>{value.returnValues['borrower']}</td>
