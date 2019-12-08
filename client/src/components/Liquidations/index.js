@@ -3,6 +3,7 @@ import { Table } from 'rimble-ui';
 import styles from './Liquidations.module.scss';
 import getWeb3 from '../../utils/getWeb3';
 import NumberFormat from 'react-number-format';
+import Plot from 'react-plotly.js';
 
 export default class Liquidations extends Component {
   state = {
@@ -31,6 +32,7 @@ export default class Liquidations extends Component {
         let totalRevenue = 0;
         let distinctLiquidators = new Set();
         let distinctBorrowers = new Set();
+        let blocksRetrieved = 0;
         liquidations.forEach(liquidation => {
           this.calculateRevenue(liquidation);
           totalRevenue += liquidation.revenue;
@@ -38,6 +40,16 @@ export default class Liquidations extends Component {
           totalLiquidation += repayAmount;
           distinctLiquidators.add(liquidation.returnValues['liquidator']);
           distinctBorrowers.add(liquidation.returnValues['borrower']);
+          web3.eth.getBlock(liquidation.blockNumber, (error, block) => {
+            blocksRetrieved++;
+            liquidation.timestamp = (new Date(block.timestamp * 1000)).toISOString();
+            // wait for all blocks to be retrieved.
+            if (blocksRetrieved === liquidations.length){
+              this.setState({
+                liquidations: liquidations,
+              });
+            }
+          });
         });
         this.setState({
           liquidations: liquidations,
@@ -82,9 +94,25 @@ export default class Liquidations extends Component {
       return (
         <div className={styles.instructions}>
           <h1> Browse USDC Liquidations </h1>
+          <Plot
+            data={[
+              {
+                x: this.state.liquidations.map(liquidation => liquidation.timestamp),
+                y: this.state.liquidations.map(liquidation => liquidation.revenue),
+                type: 'scatter',
+              },
+            ]}
+            layout={{
+              title: 'USDC Liquidation Revenue',
+              yaxis: {
+                title: 'Revenue ($)'
+              }
+            }}
+          />
           <Table width="2">
             <thead>
               <tr>
+                <th>Time</th>
                 <th>Block #</th>
                 <th>Liquidator</th>
                 <th>Borrower</th>
@@ -96,22 +124,24 @@ export default class Liquidations extends Component {
             </thead>
             <tbody>
               <tr>
+                <td></td>
                 <td>Count: <NumberFormat value={this.state.liquidations.length} displayType={'text'} thousandSeparator={true} /></td>
                 <td>Distinct: <NumberFormat value={this.state.distinctLiquidators.size} displayType={'text'} thousandSeparator={true} /></td>
                 <td>Distinct: <NumberFormat value={this.state.distinctBorrowers.size} displayType={'text'} thousandSeparator={true} /></td>
-                <td>Sum: <NumberFormat value={this.state.totalLiquidation} displayType={'text'} thousandSeparator={true} decimalScale={2} /></td>
-                <td>Sum: <NumberFormat value={this.state.totalRevenue} displayType={'text'} thousandSeparator={true} decimalScale={2} /></td>
+                <td>Sum: <NumberFormat value={this.state.totalLiquidation.toFixed(2)} displayType={'text'} thousandSeparator={true} /></td>
+                <td>Sum: <NumberFormat value={this.state.totalRevenue.toFixed(2)} displayType={'text'} thousandSeparator={true} /></td>
                 <td></td>
               </tr>
               {this.state.liquidations.map((value, index) => {
                 return (
                   <tr>
+                    <td>{value.timestamp}</td>
                     <td>{value.blockNumber}</td>
                     <td>{value.returnValues['liquidator']}</td>
                     <td>{value.returnValues['borrower']}</td>
-                    <td><NumberFormat value={value.returnValues['repayAmount'] / 10**6} displayType={'text'} thousandSeparator={true} /></td>
-                    <td><NumberFormat value={value.revenue} displayType={'text'} thousandSeparator={true} /></td>
-                    <td><NumberFormat value={value.returnValues['seizeTokens'] / 10**8} displayType={'text'} thousandSeparator={true} /></td>
+                    <td><NumberFormat value={(value.returnValues['repayAmount'] / 10**6).toFixed(6)} displayType={'text'} thousandSeparator={true} /></td>
+                    <td><NumberFormat value={value.revenue.toFixed(6)} displayType={'text'} thousandSeparator={true} /></td>
+                    <td><NumberFormat value={(value.returnValues['seizeTokens'] / 10**8).toFixed(6)} displayType={'text'} thousandSeparator={true} /></td>
                     <td>{value.symbol}</td>
                   </tr>
                 );
