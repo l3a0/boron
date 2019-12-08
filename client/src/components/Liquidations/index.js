@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
+import NumberFormat from 'react-number-format';
+import Plot from 'react-plotly.js';
 import { Table } from 'rimble-ui';
 import styles from './Liquidations.module.scss';
 import getWeb3 from '../../utils/getWeb3';
-import NumberFormat from 'react-number-format';
-import Plot from 'react-plotly.js';
 
 export default class Liquidations extends Component {
   state = {
@@ -45,6 +45,8 @@ export default class Liquidations extends Component {
             liquidation.timestamp = (new Date(block.timestamp * 1000)).toISOString();
             // wait for all blocks to be retrieved.
             if (blocksRetrieved === liquidations.length){
+              // trigger ui update once after all blocks have been retrieved
+              // to avoid degrading performance.
               this.setState({
                 liquidations: liquidations,
               });
@@ -109,7 +111,24 @@ export default class Liquidations extends Component {
               }
             }}
           />
-          <Table width="2">
+          <Plot
+            data={[
+              {
+                x: this.state.liquidations.map(liquidation => liquidation.revenue),
+                type: 'histogram',
+              },
+            ]}
+            layout={{
+              title: 'USDC Liquidation Revenue Distribution',
+              yaxis: {
+                title: 'Count'
+              },
+              xaxis: {
+                title: 'Revenue ($500 bins)'
+              },
+            }}
+          />
+          <Table width="2" fontSize="0.65em" >
             <thead>
               <tr>
                 <th>Time</th>
