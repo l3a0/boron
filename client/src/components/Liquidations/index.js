@@ -33,6 +33,7 @@ export default class Liquidations extends Component {
         let blocksRetrieved = 0;
         let dailyRevenue = {};
         let liquidatorsByRevenue = {};
+        let liquidatedBorrowersByRevenue = {};
         liquidations.forEach(liquidation => {
           this.calculateRevenue(liquidation);
           totalRevenue += liquidation.revenue;
@@ -40,14 +41,8 @@ export default class Liquidations extends Component {
           totalLiquidation += repayAmount;
           distinctLiquidators.add(liquidation.returnValues['liquidator']);
           distinctBorrowers.add(liquidation.returnValues['borrower']);
-          let liquidator = {};
-          liquidator.address = liquidation.returnValues['liquidator'];
-          liquidator.revenue = liquidation.revenue;
-          if (liquidatorsByRevenue[liquidator.address]) {
-            liquidatorsByRevenue[liquidator.address].revenue += liquidation.revenue
-          } else {
-            liquidatorsByRevenue[liquidator.address] = liquidator;
-          }
+          this.calculateLiquidatorsByRevenue(liquidation, liquidatorsByRevenue);
+          this.calculateLiquidatedBorrowersByRevenue(liquidation, liquidatedBorrowersByRevenue);
           web3.eth.getBlock(liquidation.blockNumber, (error, block) => {
             blocksRetrieved++;
             liquidation.timestamp = block.timestamp;
@@ -69,10 +64,19 @@ export default class Liquidations extends Component {
           });
         });
         liquidatorsByRevenue = Object.values(liquidatorsByRevenue).sort((a, b) => b.revenue - a.revenue);
+        liquidatedBorrowersByRevenue = Object.values(liquidatedBorrowersByRevenue).sort((a, b) => b.revenue - a.revenue);
+        let top10LiquidatedBorrowersByRevenue = liquidatedBorrowersByRevenue.slice(0, 10);
+        top10LiquidatedBorrowersByRevenue = [
+          top10LiquidatedBorrowersByRevenue.map(x => x.address),
+          top10LiquidatedBorrowersByRevenue.map(x => x.revenue.toFixed(2)),
+          top10LiquidatedBorrowersByRevenue.map(x => x.liquidationCount),
+        ];
         let top10LiquidatorsByRevenue = liquidatorsByRevenue.slice(0, 10);
-        let addresses = top10LiquidatorsByRevenue.map(x => x.address);
-        let revenue = top10LiquidatorsByRevenue.map(x => x.revenue.toFixed(2));
-        top10LiquidatorsByRevenue = [addresses, revenue];
+        top10LiquidatorsByRevenue = [
+          top10LiquidatorsByRevenue.map(x => x.address),
+          top10LiquidatorsByRevenue.map(x => x.revenue.toFixed(2)),
+          top10LiquidatorsByRevenue.map(x => x.liquidationCount),
+        ];
         this.setState({
           liquidations: liquidations,
           totalLiquidation: totalLiquidation,
@@ -81,11 +85,41 @@ export default class Liquidations extends Component {
           distinctBorrowers: distinctBorrowers,
           liquidatorsByRevenue: liquidatorsByRevenue,
           top10LiquidatorsByRevenue: top10LiquidatorsByRevenue,
+          liquidatedBorrowersByRevenue: liquidatedBorrowersByRevenue,
+          top10LiquidatedBorrowersByRevenue: top10LiquidatedBorrowersByRevenue,
         });
       }
       catch (error) {
         console.log(error);
       }
+    }
+  }
+
+  calculateLiquidatorsByRevenue(liquidation, liquidatorsByRevenue) {
+    let liquidator = {};
+    liquidator.address = liquidation.returnValues['liquidator'];
+    liquidator.revenue = liquidation.revenue;
+    liquidator.liquidationCount = 1;
+    if (liquidatorsByRevenue[liquidator.address]) {
+      liquidatorsByRevenue[liquidator.address].revenue += liquidation.revenue;
+      liquidatorsByRevenue[liquidator.address].liquidationCount++;
+    }
+    else {
+      liquidatorsByRevenue[liquidator.address] = liquidator;
+    }
+  }
+
+  calculateLiquidatedBorrowersByRevenue(liquidation, liquidatedBorrowersByRevenue) {
+    let borrower = {};
+    borrower.address = liquidation.returnValues['borrower'];
+    borrower.revenue = liquidation.revenue;
+    borrower.liquidationCount = 1;
+    if (liquidatedBorrowersByRevenue[borrower.address]) {
+      liquidatedBorrowersByRevenue[borrower.address].revenue += liquidation.revenue;
+      liquidatedBorrowersByRevenue[borrower.address].liquidationCount++;
+    }
+    else {
+      liquidatedBorrowersByRevenue[borrower.address] = borrower;
     }
   }
 
@@ -156,7 +190,7 @@ export default class Liquidations extends Component {
                 type: 'table',
                 columnwidth: [4,1],
                 header: {
-                  values: [["<b>Liquidator</b>"], ["<b>Revenue</b>"]],
+                  values: [["<b>Liquidator</b>"], ["<b>Revenue</b>"], ["<b>Count</b>"]],
                   align: ["left", "right"],
                 },
                 cells: {
@@ -184,6 +218,43 @@ export default class Liquidations extends Component {
               },
               xaxis: {
                 title: 'Revenue ($4900 bins)'
+              },
+            }}
+          />
+          <Plot
+            data={[
+              {
+                type: 'table',
+                columnwidth: [4,1],
+                header: {
+                  values: [["<b>Borrower</b>"], ["<b>Revenue</b>"], ["<b>Count</b>"]],
+                  align: ["left", "right"],
+                },
+                cells: {
+                  values: this.state.top10LiquidatedBorrowersByRevenue,
+                  align: ["left", "right"],
+                  font: {family: "Consolas"},
+                },
+              },
+            ]}
+            layout={{
+              title: 'Top 10 Liquidated Borrowers by Revenue',
+            }}
+          />
+          <Plot
+            data={[
+              {
+                x: this.state.liquidatedBorrowersByRevenue.map(borrower => borrower.revenue),
+                type: 'histogram',
+              },
+            ]}
+            layout={{
+              title: 'Liquidated Borrower Revenue Distribution',
+              yaxis: {
+                title: 'Count'
+              },
+              xaxis: {
+                title: 'Revenue ($1990 bins)'
               },
             }}
           />
