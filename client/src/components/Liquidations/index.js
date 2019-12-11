@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import NumberFormat from 'react-number-format';
 import Plot from 'react-plotly.js';
-// import { Table } from 'rimble-ui';
 import styles from './Liquidations.module.scss';
 import getWeb3 from '../../utils/getWeb3';
 
@@ -69,13 +68,13 @@ export default class Liquidations extends Component {
         top10LiquidatedBorrowersByRevenue = [
           top10LiquidatedBorrowersByRevenue.map(x => x.address),
           top10LiquidatedBorrowersByRevenue.map(x => x.revenue.toFixed(2)),
-          top10LiquidatedBorrowersByRevenue.map(x => x.liquidationCount),
+          top10LiquidatedBorrowersByRevenue.map(x => x.txCount),
         ];
         let top10LiquidatorsByRevenue = liquidatorsByRevenue.slice(0, 10);
         top10LiquidatorsByRevenue = [
           top10LiquidatorsByRevenue.map(x => x.address),
           top10LiquidatorsByRevenue.map(x => x.revenue.toFixed(2)),
-          top10LiquidatorsByRevenue.map(x => x.liquidationCount),
+          top10LiquidatorsByRevenue.map(x => x.txCount),
         ];
         this.setState({
           liquidations: liquidations,
@@ -99,10 +98,10 @@ export default class Liquidations extends Component {
     let liquidator = {};
     liquidator.address = liquidation.returnValues['liquidator'];
     liquidator.revenue = liquidation.revenue;
-    liquidator.liquidationCount = 1;
+    liquidator.txCount = 1;
     if (liquidatorsByRevenue[liquidator.address]) {
       liquidatorsByRevenue[liquidator.address].revenue += liquidation.revenue;
-      liquidatorsByRevenue[liquidator.address].liquidationCount++;
+      liquidatorsByRevenue[liquidator.address].txCount++;
     }
     else {
       liquidatorsByRevenue[liquidator.address] = liquidator;
@@ -113,10 +112,10 @@ export default class Liquidations extends Component {
     let borrower = {};
     borrower.address = liquidation.returnValues['borrower'];
     borrower.revenue = liquidation.revenue;
-    borrower.liquidationCount = 1;
+    borrower.txCount = 1;
     if (liquidatedBorrowersByRevenue[borrower.address]) {
       liquidatedBorrowersByRevenue[borrower.address].revenue += liquidation.revenue;
-      liquidatedBorrowersByRevenue[borrower.address].liquidationCount++;
+      liquidatedBorrowersByRevenue[borrower.address].txCount++;
     }
     else {
       liquidatedBorrowersByRevenue[borrower.address] = borrower;
@@ -188,9 +187,9 @@ export default class Liquidations extends Component {
             data={[
               {
                 type: 'table',
-                columnwidth: [4,1],
+                columnwidth: [4,1,1],
                 header: {
-                  values: [["<b>Liquidator</b>"], ["<b>Revenue</b>"], ["<b>Count</b>"]],
+                  values: [["<b>Liquidator</b>"], ["<b>Revenue</b>"], ["<b>TX Count</b>"]],
                   align: ["left", "right"],
                 },
                 cells: {
@@ -225,9 +224,9 @@ export default class Liquidations extends Component {
             data={[
               {
                 type: 'table',
-                columnwidth: [4,1],
+                columnwidth: [4,1,1],
                 header: {
-                  values: [["<b>Borrower</b>"], ["<b>Revenue</b>"], ["<b>Count</b>"]],
+                  values: [["<b>Borrower</b>"], ["<b>Revenue</b>"], ["<b>TX Count</b>"]],
                   align: ["left", "right"],
                 },
                 cells: {
@@ -284,7 +283,7 @@ export default class Liquidations extends Component {
               </tr>
               {this.state.liquidations.map((value, index) => {
                 return (
-                  <tr>
+                  <tr key={value.id}>
                     <td>{value.timestampISO}</td>
                     <td>{value.blockNumber}</td>
                     <td>{value.returnValues['liquidator']}</td>

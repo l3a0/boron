@@ -11,14 +11,17 @@ const Header = () => (
       <ul>
         <li>
           <a href="/" className={styles.link}>
-            {' '}
             Browse Accounts
           </a>
         </li>
         <li>
           <a href="/liquidations" className={styles.link}>
-            {' '}
             Browse Liquidations
+          </a>
+        </li>
+        <li>
+          <a href="/bot" className={styles.link}>
+            Manage Bot
           </a>
         </li>
       </ul>

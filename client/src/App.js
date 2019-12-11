@@ -3,10 +3,9 @@ import getWeb3, { getGanacheWeb3 } from './utils/getWeb3';
 import Header from './components/Header/index.js';
 import Hero from './components/Hero/index.js';
 import Liquidations from './components/Liquidations/index.js';
+import Bot from './components/Bot/index.js';
 import UnhealthyAccounts from './components/UnhealthyAccounts/index.js';
-
 import { solidityLoaderOptions } from '../config/webpack';
-
 import styles from './App.module.scss';
 
 class App extends Component {
@@ -79,12 +78,22 @@ class App extends Component {
     );
   }
 
+  renderBot() {
+    return (
+      <div className={styles.wrapper}>
+        <Hero />
+        <Bot {...this.state} />
+      </div>
+    );
+  }
+
   render() {
     return (
       <div className={styles.App}>
         <Header />
         {this.state.route === '' && this.renderUnhealthyAccounts()}
         {this.state.route === 'liquidations' && this.renderLiquidations()}
+        {this.state.route === 'bot' && this.renderBot()}
       </div>
     );
   }
