@@ -1,11 +1,91 @@
 import React, { Component } from 'react';
 import styles from './UnhealthyAccounts.module.scss';
+import getWeb3 from '../../utils/getWeb3';
+import CUSDCABI from '../../../../contracts/cusdc.json';
+import CDAIABI from '../../../../contracts/cdai.json';
+import CETHABI from '../../../../contracts/ceth.json';
+import CREPABI from '../../../../contracts/crep.json';
+import CBATABI from '../../../../contracts/cbat.json';
+import CSAIABI from '../../../../contracts/csai.json';
+import CZRXABI from '../../../../contracts/czrx.json';
+import CWBTCABI from '../../../../contracts/cwbtc.json';
 
 export default class UnhealthyAccounts extends Component {
-  state = {};
+  state = {
+    showUsd: true,
+    ethToUsd: 143.77,
+  };
+  // Prices are in USD ($).
+  // TODO: Put this in IndexedDB.
+  tokenMap = {
+    '0x39aa39c021dfbae8fac545936693ac917d5e7563': {
+      symbol: 'cUSDC',
+      decimals: 6,
+      price: 0.0208,
+      underlyingAssetToEthExchangeRate: 0.007067,
+      abi: CUSDCABI.result,
+    },
+    '0x5d3a536e4d6dbd6114cc1ead35777bab948e3643': {
+      symbol: 'cDAI',
+      decimals: 18,
+      price: 0.0000,
+      underlyingAssetToEthExchangeRate: 0.007071,
+      abi: CDAIABI.result,
+    },
+    '0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5': {
+      symbol: 'cETH',
+      decimals: 18,
+      price: 3.0154,
+      underlyingAssetToEthExchangeRate: 1,
+      abi: CETHABI.result,
+    },
+    '0x158079ee67fce2f58472a96584a73c7ab9ac95c1': {
+      symbol: 'cREP',
+      decimals: 18,
+      price: 0.2126,
+      underlyingAssetToEthExchangeRate: 0.070744,
+      abi: CREPABI.result,
+    },
+    '0x6c8c6b02e7b2be14d4fa6022dfd6d75921d90e4e': {
+      symbol: 'cBAT',
+      decimals: 18,
+      price: 0.0039,
+      underlyingAssetToEthExchangeRate: 0.001297,
+      abi: CBATABI.result,
+    },
+    '0xf5dce57282a584d2746faf1593d3121fcac444dc': {
+      symbol: 'cSAI',
+      decimals: 18,
+      price: 0.0211,
+      underlyingAssetToEthExchangeRate: 0.007129,
+      abi: CSAIABI.result,
+    },
+    '0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407': {
+      symbol: 'cZRX',
+      decimals: 18,
+      price: 0.0051,
+      underlyingAssetToEthExchangeRate: 0.001524,
+      abi: CZRXABI.result,
+    },
+    '0xc11b1268c1a384e55c48c2391d8d480264a3a7f4': {
+      symbol: 'cWBTC',
+      decimals: 8,
+      price: 148.3473,
+      underlyingAssetToEthExchangeRate: 50.753489,
+      abi: CWBTCABI.result,
+    },
+  };
 
   async componentDidMount() {
+    await this.loadTokenContracts();
     await this.loadUnhealthyAccounts();
+  }
+
+  async loadTokenContracts() {
+    const web3 = await getWeb3();
+    for (const [tokenAddress, token] of Object.entries(this.tokenMap)) {
+      token.contract = new web3.eth.Contract(JSON.parse(token.abi), tokenAddress);
+    }
   }
 
   async loadUnhealthyAccounts() {
@@ -21,41 +101,30 @@ export default class UnhealthyAccounts extends Component {
       // Your code for handling the data you get from the API
       // TODO: Filter by token.
       let data = await response.json();
-      // Prices are in USD ($).
-      const addressToSymbolMap = {
-        '0x39aa39c021dfbae8fac545936693ac917d5e7563': {'symbol': 'cUSDC', 'price': 0.0208, 'underlyingAssetToEthExchangeRate': 0.007067},
-        '0x5d3a536e4d6dbd6114cc1ead35777bab948e3643': {'symbol': 'cDAI', 'price': 0.0000, 'underlyingAssetToEthExchangeRate': 0.007071},
-        '0x4ddc2d193948926d02f9b1fe9e1daa0718270ed5': {'symbol': 'cETH', 'price': 3.0154, 'underlyingAssetToEthExchangeRate': 1},
-        '0x158079ee67fce2f58472a96584a73c7ab9ac95c1': {'symbol': 'cREP', 'price': 0.2126, 'underlyingAssetToEthExchangeRate': 0.070744},
-        '0x6c8c6b02e7b2be14d4fa6022dfd6d75921d90e4e': {'symbol': 'cBAT', 'price': 0.0039, 'underlyingAssetToEthExchangeRate': 0.001297},
-        '0xf5dce57282a584d2746faf1593d3121fcac444dc': {'symbol': 'cSAI', 'price': 0.0211, 'underlyingAssetToEthExchangeRate': 0.007129},
-        '0xb3319f5d18bc0d84dd1b4825dcde5d5f7266d407': {'symbol': 'cZRX', 'price': 0.0051, 'underlyingAssetToEthExchangeRate': 0.001524},
-        '0xc11b1268c1a384e55c48c2391d8d480264a3a7f4': {'symbol': 'cWBTC', 'price': 148.3473, 'underlyingAssetToEthExchangeRate': 50.753489},
-      };
-      const showUsd = true;
-      const ethToUsd = 143.77;
       data.accounts.forEach(account => {
         account.debt = [];
         account.collateral = [];
         account.total_borrow_value_in_eth = parseFloat(account.total_borrow_value_in_eth.value);
-        account.total_borrow_value_in_usd = account.total_borrow_value_in_eth * ethToUsd;
+        account.total_borrow_value_in_usd = account.total_borrow_value_in_eth * this.state.ethToUsd;
         account.max_liquidation_value_in_eth = account.total_borrow_value_in_eth * data.close_factor;
-        account.max_liquidation_value_in_usd = account.max_liquidation_value_in_eth * ethToUsd;
+        account.max_liquidation_value_in_usd = account.max_liquidation_value_in_eth * this.state.ethToUsd;
         account.total_collateral_value_in_eth = parseFloat(account.total_collateral_value_in_eth.value);
-        account.total_collateral_value_in_usd = account.total_collateral_value_in_eth * ethToUsd;
+        account.total_collateral_value_in_usd = account.total_collateral_value_in_eth * this.state.ethToUsd;
         account.total_debt_in_eth = 0;
         account.total_supply_in_eth = 0;
         account.tokens.forEach(token => {
-          token.symbol = addressToSymbolMap[token.address].symbol;
-          token.price = addressToSymbolMap[token.address].price;
-          token.underlyingAssetToEthExchangeRate = addressToSymbolMap[token.address].underlyingAssetToEthExchangeRate;
+          token.symbol = this.tokenMap[token.address].symbol;
+          token.decimals = this.tokenMap[token.address].decimals;
+          token.price = this.tokenMap[token.address].price;
+          token.contract = this.tokenMap[token.address].contract;
+          token.underlyingAssetToEthExchangeRate = this.tokenMap[token.address].underlyingAssetToEthExchangeRate;
           token.borrow_balance_underlying = parseFloat(token.borrow_balance_underlying.value);
-          token.borrow_balance_underlying_in_eth = token.borrow_balance_underlying * addressToSymbolMap[token.address].underlyingAssetToEthExchangeRate;
-          token.borrow_balance_underlying_in_usd = token.borrow_balance_underlying_in_eth * ethToUsd;
+          token.borrow_balance_underlying_in_eth = token.borrow_balance_underlying * this.tokenMap[token.address].underlyingAssetToEthExchangeRate;
+          token.borrow_balance_underlying_in_usd = token.borrow_balance_underlying_in_eth * this.state.ethToUsd;
           account.total_debt_in_eth += token.borrow_balance_underlying_in_eth;
           token.supply_balance_underlying = parseFloat(token.supply_balance_underlying.value);
-          token.supply_balance_underlying_in_eth = token.supply_balance_underlying * addressToSymbolMap[token.address].underlyingAssetToEthExchangeRate;
-          token.supply_balance_underlying_in_usd = token.supply_balance_underlying_in_eth * ethToUsd;
+          token.supply_balance_underlying_in_eth = token.supply_balance_underlying * this.tokenMap[token.address].underlyingAssetToEthExchangeRate;
+          token.supply_balance_underlying_in_usd = token.supply_balance_underlying_in_eth * this.state.ethToUsd;
           account.total_supply_in_eth += token.supply_balance_underlying_in_eth;
           if (token.borrow_balance_underlying > 0) {
             account.debt.push(token);
@@ -64,19 +133,53 @@ export default class UnhealthyAccounts extends Component {
             account.collateral.push(token);
           }
         });
-        account.total_debt_in_usd = account.total_debt_in_eth * ethToUsd;
-        account.total_supply_in_usd = account.total_supply_in_eth * ethToUsd;
+        account.total_debt_in_usd = account.total_debt_in_eth * this.state.ethToUsd;
+        account.total_supply_in_usd = account.total_supply_in_eth * this.state.ethToUsd;
         account.debt.sort((a, b) => b.borrow_balance_underlying_in_eth - a.borrow_balance_underlying_in_eth);
         account.collateral.sort((a, b) => b.supply_balance_underlying_in_eth - a.supply_balance_underlying_in_eth);
       });
       data.accounts.sort((a, b) => b.total_borrow_value_in_eth - a.total_borrow_value_in_eth);
+      // data.accounts.forEach(account => {
+      //   account.transactions = [];
+      //   // <li>Liquidate {(account.max_liquidation_value_in_eth / account.debt[0].underlyingAssetToEthExchangeRate).toFixed(8)} {account.debt[0].symbol.substring(1)} debt</li>
+      //   // {account.max_liquidation_value_in_eth * this.state.accountResponse.liquidation_incentive > account.collateral[0].supply_balance_underlying_in_eth &&
+      //   //   <li>Insufficient collateral.</li>
+      //   // }
+      //   // {account.max_liquidation_value_in_eth * this.state.accountResponse.liquidation_incentive <= account.collateral[0].supply_balance_underlying_in_eth &&
+      //   //   <li>Collect {(account.max_liquidation_value_in_eth * this.state.accountResponse.liquidation_incentive / account.collateral[0].underlyingAssetToEthExchangeRate).toFixed(8)} {account.collateral[0].symbol.substring(1)} collateral</li>
+      //   // }
+      //   const liquidationAmount = account.max_liquidation_value_in_eth / account.debt[0].underlyingAssetToEthExchangeRate;
+      //   if (account.debt[0].symbol === 'cETH') {
+      //     // console.log("liquidationAmount = " + liquidationAmount + ", liquidationAmount * 10**18 = " + (liquidationAmount * 10**18).toFixed(0) + ", or = " + liquidationAmount * 10**18);
+      //     account.debt[0].contract.methods.liquidateBorrow(account.address, account.collateral[0].address).estimateGas({gas: 5000000, value: (liquidationAmount * 10**18).toFixed(0)}, function(error, gasAmount) {
+      //       if(gasAmount === 5000000) {
+      //         console.log('Method ran out of gas');
+      //       }
+      //       console.log(gasAmount);
+      //       console.log(error);
+      //     });
+      //   } else {
+      //     console.log(account);
+      //     const characteristic = parseInt(Math.log10(liquidationAmount));
+      //     console.log("characteristic = " + characteristic + ", log = " + Math.log10(liquidationAmount));
+      //     let exponent = account.debt[0].decimals;
+      //     // if (liquidationAmount > 1.0 && characteristic >= 0) {
+      //     //   exponent -= (characteristic + 1);
+      //     // }
+      //     console.log("liquidationAmount = " + liquidationAmount + ", * 10**" + exponent);
+      //     account.debt[0].contract.methods.liquidateBorrow(account.address, (liquidationAmount * 10**exponent).toString(), account.collateral[0].address).estimateGas({gas: 5000000}, function(error, gasAmount) {
+      //       if(gasAmount === 5000000) {
+      //         console.log('Method ran out of gas');
+      //       }
+      //       console.log(gasAmount);
+      //       console.log(error);
+      //     });
+      //   }
+      // });
       this.setState({
         accountResponse: data,
-        ethToUsd: ethToUsd,
-        showUsd: showUsd,
-        currencySymbol: showUsd ? '$' : 'Ξ',
+        currencySymbol: this.state.showUsd ? '$' : 'Ξ',
       });
-      console.log(data);
     }
     catch (e) {
       // This is where you run code if the server returns any errors
@@ -154,7 +257,12 @@ export default class UnhealthyAccounts extends Component {
                     <td>
                       <ul>
                         <li>Liquidate {(account.max_liquidation_value_in_eth / account.debt[0].underlyingAssetToEthExchangeRate).toFixed(8)} {account.debt[0].symbol.substring(1)} debt</li>
-                        <li>Collect {(account.max_liquidation_value_in_eth > account.collateral[0].supply_balance_underlying_in_eth ? account.collateral[0].supply_balance_underlying : account.max_liquidation_value_in_eth * this.state.accountResponse.liquidation_incentive / account.collateral[0].underlyingAssetToEthExchangeRate).toFixed(8)} {account.collateral[0].symbol.substring(1)} collateral</li>
+                        {account.max_liquidation_value_in_eth * this.state.accountResponse.liquidation_incentive > account.collateral[0].supply_balance_underlying_in_eth &&
+                          <li>Insufficient collateral.</li>
+                        }
+                        {account.max_liquidation_value_in_eth * this.state.accountResponse.liquidation_incentive <= account.collateral[0].supply_balance_underlying_in_eth &&
+                          <li>Collect {(account.max_liquidation_value_in_eth * this.state.accountResponse.liquidation_incentive / account.collateral[0].underlyingAssetToEthExchangeRate).toFixed(8)} {account.collateral[0].symbol.substring(1)} collateral</li>
+                        }
                       </ul>
                     </td>
                   </tr>
