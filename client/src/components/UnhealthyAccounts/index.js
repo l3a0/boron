@@ -80,7 +80,9 @@ export default class UnhealthyAccounts extends Component {
     const web3 = await getWeb3();
     this.setState({
       web3: web3,
+      gasPrice: new web3.utils.BN(13.2 * 10**9),
     });
+    // console.log(this.state.gasPrice.toString());
     await this.loadTokenContracts();
     await this.loadUnhealthyAccounts();
   }
@@ -151,15 +153,17 @@ export default class UnhealthyAccounts extends Component {
         }
         const liquidationAmount = account.max_liquidation_value_in_eth / account.debt[0].underlyingAssetToEthExchangeRate;
         const seizeAmount = account.max_liquidation_value_in_eth * data.liquidation_incentive / account.collateral[0].underlyingAssetToEthExchangeRate;
-        account.transactions.push(`Liquidate ${liquidationAmount.toFixed(8)} ${account.debt[0].symbol.substring(1)} debt`)
-        account.transactions.push(`Collect ${seizeAmount.toFixed(8)} ${account.collateral[0].symbol.substring(1)} collateral`)
+        account.transactions.push(`Liquidate ${liquidationAmount.toFixed(8)} ${account.debt[0].symbol.substring(1)}, $${account.max_liquidation_value_in_usd.toFixed(8)} debt`)
+        account.transactions.push(`Collect ${seizeAmount.toFixed(8)} ${account.collateral[0].symbol.substring(1)}, $${(account.max_liquidation_value_in_usd * data.liquidation_incentive).toFixed(8)} collateral`)
         let expectedGasAmount = 0;
         if (account.debt[0].symbol === 'cETH') {
           expectedGasAmount = await account.debt[0].contract.methods.liquidateBorrow(account.address, account.collateral[0].address).estimateGas({gas: 5000000000, value: (liquidationAmount * 10**account.debt[0].decimals).toFixed(0)});
         } else {
           expectedGasAmount = await account.debt[0].contract.methods.liquidateBorrow(account.address, (liquidationAmount * 10**account.debt[0].decimals).toFixed(0), account.collateral[0].address).estimateGas({gas: 5000000000});
         }
-        account.transactions.push(`Gas Amount = ${expectedGasAmount}`);
+        const expectedGasFee = this.state.web3.utils.fromWei(this.state.gasPrice.mul(this.state.web3.utils.toBN(expectedGasAmount)));
+        // console.log(`expectedGasFee = ${this.state.web3.utils.fromWei(expectedGasFee) * this.state.ethToUsd}`);
+        account.transactions.push(`Gas Amount = ${expectedGasAmount}, Gas Fee = $${(expectedGasFee * this.state.ethToUsd).toFixed(8)}`);
       }
       this.setState({
         accountResponse: data,
