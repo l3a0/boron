@@ -148,16 +148,16 @@ export default class UnhealthyAccounts extends Component {
       data.accounts.sort((a, b) => b.total_borrow_value_in_eth - a.total_borrow_value_in_eth);
       for (const account of data.accounts) {
         account.transactions = [];
+        const liquidationAmount = account.max_liquidation_value_in_eth / account.debt[0].underlyingAssetToEthExchangeRate;
+        const seizeAmount = account.max_liquidation_value_in_eth * data.liquidation_incentive / account.collateral[0].underlyingAssetToEthExchangeRate;
+        account.transactions.push(`Liquidate ${liquidationAmount.toFixed(8)} ${account.debt[0].symbol.substring(1)}, ${this.state.currencySymbol}${(account.max_liquidation_value_in_eth * (this.state.showUsd ? this.state.ethToUsd : 1)).toFixed(8)} debt`)
+        account.transactions.push(`Collect ${seizeAmount.toFixed(8)} ${account.collateral[0].symbol.substring(1)}, ${this.state.currencySymbol}${(account.max_liquidation_value_in_eth * (this.state.showUsd ? this.state.ethToUsd : 1) * data.liquidation_incentive).toFixed(8)} collateral`)
         const expectedCollateral = account.max_liquidation_value_in_eth * data.liquidation_incentive;
         const actualCollateral = account.collateral[0].supply_balance_underlying_in_eth;
         if (expectedCollateral > actualCollateral) {
           account.transactions.push('Insufficient collateral.')
           continue;
         }
-        const liquidationAmount = account.max_liquidation_value_in_eth / account.debt[0].underlyingAssetToEthExchangeRate;
-        const seizeAmount = account.max_liquidation_value_in_eth * data.liquidation_incentive / account.collateral[0].underlyingAssetToEthExchangeRate;
-        account.transactions.push(`Liquidate ${liquidationAmount.toFixed(8)} ${account.debt[0].symbol.substring(1)}, ${this.state.currencySymbol}${(account.max_liquidation_value_in_eth * (this.state.showUsd ? this.state.ethToUsd : 1)).toFixed(8)} debt`)
-        account.transactions.push(`Collect ${seizeAmount.toFixed(8)} ${account.collateral[0].symbol.substring(1)}, ${this.state.currencySymbol}${(account.max_liquidation_value_in_eth * (this.state.showUsd ? this.state.ethToUsd : 1) * data.liquidation_incentive).toFixed(8)} collateral`)
         let expectedGasAmount = 0;
         if (account.debt[0].symbol === 'cETH') {
           expectedGasAmount = await account.debt[0].contract.methods.liquidateBorrow(account.address, account.collateral[0].address).estimateGas({gas: 5000000000, value: (liquidationAmount * 10**account.debt[0].decimals).toFixed(0)});

@@ -131,6 +131,8 @@ export default class Liquidations extends Component {
       '0xF5DCe57282A584D2746FaF1593d3121Fcac444dC': {'symbol': 'cSAI', 'price': 0.0211},
       '0xB3319f5D18Bc0D84dD1b4825Dcde5d5f7266d407': {'symbol': 'cZRX', 'price': 0.0051},
       '0xC11b1268C1A384e55C48c2391d8d480264A3A7F4': {'symbol': 'cWBTC', 'price': 148.3473},
+      '0x39aa39c021dfbae8fac545936693ac917d5e7563': {'symbol': 'cUSDC', 'price': 0.0209},
+      '0x5d3a536E4D6DbD6114cc1Ead35777bAB948E3643': {'symbol': 'cDAI', 'price': 0.0},
     }
     const cTokenAddress = liquidation.returnValues['cTokenCollateral'];
     liquidation.symbol = addressToSymbolMap[cTokenAddress].symbol;
