@@ -13,7 +13,7 @@ export default class Liquidations extends Component {
   
   async loadLiquidations() {
     const web3 = await getWeb3();
-    let compoundUsdAbi = require('../../../../contracts/cusdc.json');
+    let compoundUsdAbi = require('../../abis/cusdc.json');
     // Implies only liquidations of Compound USDC debt are retrieved.
     let compoundUsd = new web3.eth.Contract(JSON.parse(compoundUsdAbi.result), '0x39aa39c021dfbae8fac545936693ac917d5e7563');
     if (compoundUsd) {

@@ -1,8 +1,10 @@
 /* config-overrides.js */
 const { solidityLoader } = require('./config/webpack');
+const WorkerPlugin = require('worker-plugin');
 
 module.exports = function override(config, env) {
   //do stuff with the webpack config...
+  config.plugins.push(new WorkerPlugin());
 
   // allow importing from outside of app/src folder, ModuleScopePlugin prevents this.
   const scope = config.resolve.plugins.findIndex(o => o.constructor.name === 'ModuleScopePlugin');

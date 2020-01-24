@@ -1,14 +1,14 @@
 import React, { Component } from 'react';
 import styles from './UnhealthyAccounts.module.scss';
 import getWeb3 from '../../utils/getWeb3';
-import CUSDCABI from '../../../../contracts/cusdc.json';
-import CDAIABI from '../../../../contracts/cdai.json';
-import CETHABI from '../../../../contracts/ceth.json';
-import CREPABI from '../../../../contracts/crep.json';
-import CBATABI from '../../../../contracts/cbat.json';
-import CSAIABI from '../../../../contracts/csai.json';
-import CZRXABI from '../../../../contracts/czrx.json';
-import CWBTCABI from '../../../../contracts/cwbtc.json';
+import CUSDCABI from '../../abis/cusdc.json';
+import CDAIABI from '../../abis/cdai.json';
+import CETHABI from '../../abis/ceth.json';
+import CREPABI from '../../abis/crep.json';
+import CBATABI from '../../abis/cbat.json';
+import CSAIABI from '../../abis/csai.json';
+import CZRXABI from '../../abis/czrx.json';
+import CWBTCABI from '../../abis/cwbtc.json';
 
 export default class UnhealthyAccounts extends Component {
   state = {
