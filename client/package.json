@@ -7,7 +7,7 @@
     "classnames": "^2.2.6",
     "comlink": "^4.2.0",
     "json-loader": "^0.5.7",
-    "node-sass": "^4.13.1",
+    "node-sass": "^7.0.0",
     "plotly.js": "^1.51.2",
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
